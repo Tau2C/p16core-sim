@@ -13,19 +13,19 @@ impl Status {
     pub fn value(&self) -> u8 {
         let mut value = 0;
         value |= if self.irp { 1 } else { 0 };
-        value << 1;
+        value <<= 1;
         value |= if self.rp1 { 1 } else { 0 };
-        value << 1;
+        value <<= 1;
         value |= if self.rp0 { 1 } else { 0 };
-        value << 1;
+        value <<= 1;
         value |= if self.to { 1 } else { 0 };
-        value << 1;
+        value <<= 1;
         value |= if self.pd { 1 } else { 0 };
-        value << 1;
+        value <<= 1;
         value |= if self.z { 1 } else { 0 };
-        value << 1;
+        value <<= 1;
         value |= if self.dc { 1 } else { 0 };
-        value << 1;
+        value <<= 1;
         value |= if self.c { 1 } else { 0 };
         value
     }
@@ -46,7 +46,7 @@ impl Default for Status {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Intcon {
     pub gie: bool,
     pub peie: bool,
@@ -62,35 +62,20 @@ impl Intcon {
     pub fn value(&self) -> u8 {
         let mut value = 0;
         value |= if self.gie { 1 } else { 0 };
-        value << 1;
+        value <<= 1;
         value |= if self.peie { 1 } else { 0 };
-        value << 1;
+        value <<= 1;
         value |= if self.tmr0ie { 1 } else { 0 };
-        value << 1;
+        value <<= 1;
         value |= if self.inte { 1 } else { 0 };
-        value << 1;
+        value <<= 1;
         value |= if self.rbie { 1 } else { 0 };
-        value << 1;
+        value <<= 1;
         value |= if self.tmr0if { 1 } else { 0 };
-        value << 1;
+        value <<= 1;
         value |= if self.intf { 1 } else { 0 };
-        value << 1;
+        value <<= 1;
         value |= if self.rbif { 1 } else { 0 };
         value
-    }
-}
-
-impl Default for Intcon {
-    fn default() -> Self {
-        Self {
-            gie: false,
-            peie: false,
-            tmr0ie: false,
-            inte: false,
-            rbie: false,
-            tmr0if: false,
-            intf: false,
-            rbif: false,
-        }
     }
 }

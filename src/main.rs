@@ -86,33 +86,56 @@ impl Default for P16Core {
 
 #[derive(Debug, Clone, Copy)]
 pub enum Bit {
-    B0,
-    B1,
-    B2,
-    B3,
-    B4,
-    B5,
-    B6,
-    B7,
+    B0 = 0,
+    B1 = 1,
+    B2 = 2,
+    B3 = 3,
+    B4 = 4,
+    B5 = 5,
+    B6 = 6,
+    B7 = 7,
 }
 
-impl TryFrom<u16> for Bit {
-    type Error = ();
-
-    fn try_from(value: u16) -> Result<Self, Self::Error> {
-        match value {
-            0 => Ok(Bit::B0),
-            1 => Ok(Bit::B1),
-            2 => Ok(Bit::B2),
-            3 => Ok(Bit::B3),
-            4 => Ok(Bit::B4),
-            5 => Ok(Bit::B5),
-            6 => Ok(Bit::B6),
-            7 => Ok(Bit::B7),
-            _ => Err(()),
-        }
+impl Bit {
+    pub fn as_u8(self) -> u8 {
+        self as u8
+    }
+    pub fn as_u16(self) -> u16 {
+        self as u16
+    }
+    pub fn as_u32(self) -> u32 {
+        self as u32
+    }
+    pub fn as_u64(self) -> u64 {
+        self as u64
     }
 }
+
+macro_rules! impl_try_from_int_for_bit {
+    ($($t:ty),*) => {
+        $(
+            impl TryFrom<$t> for Bit {
+                type Error = ();
+
+                fn try_from(value: $t) -> Result<Self, Self::Error> {
+                    match value {
+                        0 => Ok(Bit::B0),
+                        1 => Ok(Bit::B1),
+                        2 => Ok(Bit::B2),
+                        3 => Ok(Bit::B3),
+                        4 => Ok(Bit::B4),
+                        5 => Ok(Bit::B5),
+                        6 => Ok(Bit::B6),
+                        7 => Ok(Bit::B7),
+                        _ => Err(()),
+                    }
+                }
+            }
+        )*
+    };
+}
+
+impl_try_from_int_for_bit!(u8, u16, u32, u64, i8, i16, i32, i64);
 
 impl Shl<Bit> for u8 {
     type Output = u8;
@@ -143,18 +166,6 @@ impl Shl<Bit> for u64 {
 
     fn shl(self, rhs: Bit) -> Self::Output {
         self << rhs as Self::Output
-    }
-}
-
-impl Into<u32> for Bit {
-    fn into(self) -> u32 {
-        self as u32
-    }
-}
-
-impl From<Bit> for u8 {
-    fn from(b: Bit) -> u8 {
-        b as u8
     }
 }
 
@@ -389,7 +400,7 @@ impl P16Core {
         };
         (self.pc, _) = self.pc.overflowing_add(1);
         self.skip_next = false;
-        return op;
+        op
     }
 
     #[tracing::instrument(skip(self))]
@@ -591,7 +602,7 @@ impl P16Core {
                 self.w = result;
             }
             Instruction::ANDLW { lit } => {
-                self.w = self.w & lit;
+                self.w &= lit;
                 self.status.z = self.w == 0;
             }
             Instruction::CALL { lit } => {
@@ -602,7 +613,7 @@ impl P16Core {
                 self.pc = (self.pclath as u16 & 0x18 << 7) | lit & 0x3FF;
             }
             Instruction::IORLW { lit } => {
-                self.w = self.w | lit;
+                self.w |= lit;
                 self.status.z = self.w == 0;
             }
             Instruction::MOVLW { lit } => {
@@ -629,7 +640,7 @@ impl P16Core {
                 self.w = result;
             }
             Instruction::XORLW { lit } => {
-                self.w = self.w ^ lit;
+                self.w ^= lit;
                 self.status.z = self.w == 0;
             }
         }
