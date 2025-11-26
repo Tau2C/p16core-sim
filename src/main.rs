@@ -4,6 +4,8 @@ pub mod regs;
 use std::ops::Shl;
 
 use circular_buffer::CircularBuffer;
+use tracing::Level;
+use tracing_subscriber::FmtSubscriber;
 
 use crate::{mem::Ram, regs::*};
 
@@ -241,6 +243,7 @@ impl P16Core {
         }
     }
 
+    #[tracing::instrument]
     fn decode(word: u16) -> Instruction {
         match (word >> 8) as u8 {
             0b00_0000..=0b00_1111 => match (word >> 8) as u8 {
@@ -389,6 +392,7 @@ impl P16Core {
         return op;
     }
 
+    #[tracing::instrument(skip(self))]
     fn exec_op(&mut self, instruction: Instruction) {
         match instruction {
             Instruction::ADDWF { reg, dest } => {
@@ -631,12 +635,14 @@ impl P16Core {
         }
     }
 
+    #[tracing::instrument(skip(self))]
     fn write(&mut self, address: u8, value: u8) {
         let address =
             (((self.status.rp1 as u16) << 1 | (self.status.rp0 as u16)) << 8) | (address as u16);
         self.file.write(address, value);
     }
 
+    #[tracing::instrument(skip(self))]
     fn read(&self, address: u8) -> u8 {
         let address =
             (((self.status.rp1 as u16) << 1 | (self.status.rp0 as u16)) << 8) | (address as u16);
@@ -701,12 +707,19 @@ impl P16Core {
 }
 
 fn main() {
+    let subscriber = FmtSubscriber::builder()
+        .with_max_level(Level::INFO)
+        .finish();
+    tracing::subscriber::set_global_default(subscriber).expect("setting default subscriber failed");
+
     let file = "test/src.X.production.hex";
     let mut p16 = P16Core::new(file);
     loop {
         let op = p16.get_next_op();
         let instruction = P16Core::decode(op);
-        println!("{:?}", instruction);
+        let span = tracing::info_span!("cycle", pc = p16.pc, op);
+        let _guard = span.enter();
+        tracing::info!("{:?}", instruction);
         p16.exec_op(instruction);
     }
 }
