@@ -701,7 +701,7 @@ impl P16Core {
 }
 
 fn main() {
-    let file = "test.hex";
+    let file = "test/src.X.production.hex";
     let mut p16 = P16Core::new(file);
     loop {
         let op = p16.get_next_op();
