@@ -1,0 +1,69 @@
+MPLINK 5.08, LINKER
+Linker Map File - Created Wed Nov 26 13:54:06 2025
+
+                                 Section Info
+                  Section       Type    Address   Location Size(Bytes)
+                ---------  ---------  ---------  ---------  ---------
+                   .org_0       code   0x000000    program   0x000004
+                   .cinit    romdata   0x000002    program   0x000004
+                   .org_1       code   0x000006    program   0x000084
+                   .udata      udata   0x000020       data   0x000005
+
+
+
+                              Program Memory Usage 
+                               Start         End      
+                           ---------   ---------      
+                            0x000000    0x000003      
+                            0x000006    0x000047      
+            70 out of 8454 program addresses used, program memory utilization is 0%
+
+
+
+                              Symbols - Sorted by Name
+                     Name    Address   Location    Storage File                     
+                ---------  ---------  ---------  --------- ---------                
+               CountLoopA   0x00000e    program     static /home/pnp_l3/Desktop/.177140/L4.X/src.asm
+               CountLoopB   0x000016    program     static /home/pnp_l3/Desktop/.177140/L4.X/src.asm
+               D200msLoop   0x000044    program     static /home/pnp_l3/Desktop/.177140/L4.X/src.asm
+                Delay10ms   0x00003a    program     static /home/pnp_l3/Desktop/.177140/L4.X/src.asm
+               Delay200ms   0x000042    program     static /home/pnp_l3/Desktop/.177140/L4.X/src.asm
+                     Main   0x000006    program     static /home/pnp_l3/Desktop/.177140/L4.X/src.asm
+                 MainLoop   0x000007    program     static /home/pnp_l3/Desktop/.177140/L4.X/src.asm
+                ShowLoop2   0x00002c    program     static /home/pnp_l3/Desktop/.177140/L4.X/src.asm
+                TMR1Setup   0x000036    program     static /home/pnp_l3/Desktop/.177140/L4.X/src.asm
+            WaitForTMR1IF   0x00003f    program     static /home/pnp_l3/Desktop/.177140/L4.X/src.asm
+                     _End   0x000035    program     static /home/pnp_l3/Desktop/.177140/L4.X/src.asm
+               _ShowLoop1   0x000021    program     static /home/pnp_l3/Desktop/.177140/L4.X/src.asm
+               _ShowLoop2   0x00002f    program     static /home/pnp_l3/Desktop/.177140/L4.X/src.asm
+                      OP1   0x000020       data     static /home/pnp_l3/Desktop/.177140/L4.X/src.asm
+                      OP2   0x000021       data     static /home/pnp_l3/Desktop/.177140/L4.X/src.asm
+                    WYNIK   0x000022       data     static /home/pnp_l3/Desktop/.177140/L4.X/src.asm
+                      cnt   0x000024       data     static /home/pnp_l3/Desktop/.177140/L4.X/src.asm
+                       vA   0x000023       data     static /home/pnp_l3/Desktop/.177140/L4.X/src.asm
+
+
+
+                              Symbols - Sorted by Address
+                     Name    Address   Location    Storage File                     
+                ---------  ---------  ---------  --------- ---------                
+                     Main   0x000006    program     static /home/pnp_l3/Desktop/.177140/L4.X/src.asm
+                 MainLoop   0x000007    program     static /home/pnp_l3/Desktop/.177140/L4.X/src.asm
+               CountLoopA   0x00000e    program     static /home/pnp_l3/Desktop/.177140/L4.X/src.asm
+               CountLoopB   0x000016    program     static /home/pnp_l3/Desktop/.177140/L4.X/src.asm
+               _ShowLoop1   0x000021    program     static /home/pnp_l3/Desktop/.177140/L4.X/src.asm
+                ShowLoop2   0x00002c    program     static /home/pnp_l3/Desktop/.177140/L4.X/src.asm
+               _ShowLoop2   0x00002f    program     static /home/pnp_l3/Desktop/.177140/L4.X/src.asm
+                     _End   0x000035    program     static /home/pnp_l3/Desktop/.177140/L4.X/src.asm
+                TMR1Setup   0x000036    program     static /home/pnp_l3/Desktop/.177140/L4.X/src.asm
+                Delay10ms   0x00003a    program     static /home/pnp_l3/Desktop/.177140/L4.X/src.asm
+            WaitForTMR1IF   0x00003f    program     static /home/pnp_l3/Desktop/.177140/L4.X/src.asm
+               Delay200ms   0x000042    program     static /home/pnp_l3/Desktop/.177140/L4.X/src.asm
+               D200msLoop   0x000044    program     static /home/pnp_l3/Desktop/.177140/L4.X/src.asm
+                      OP1   0x000020       data     static /home/pnp_l3/Desktop/.177140/L4.X/src.asm
+                      OP2   0x000021       data     static /home/pnp_l3/Desktop/.177140/L4.X/src.asm
+                    WYNIK   0x000022       data     static /home/pnp_l3/Desktop/.177140/L4.X/src.asm
+                       vA   0x000023       data     static /home/pnp_l3/Desktop/.177140/L4.X/src.asm
+                      cnt   0x000024       data     static /home/pnp_l3/Desktop/.177140/L4.X/src.asm
+
+
