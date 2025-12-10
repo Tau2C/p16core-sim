@@ -271,7 +271,7 @@ pub fn decode(word: u16) -> Instruction {
 pub fn exec_op(core: &mut P16Core, instruction: Instruction) {
     match instruction {
         Instruction::ADDWF { reg, dest } => {
-            let b = core.read(reg);
+            let b = core.read(reg as u16);
             let (result, c) = core.w.overflowing_add(b);
 
             core.status.z = result == 0;
@@ -279,16 +279,16 @@ pub fn exec_op(core: &mut P16Core, instruction: Instruction) {
             core.status.dc = ((core.w & 0x0F) + (b & 0x0F)) > 0x0F;
 
             if dest {
-                core.write(reg, result);
+                core.write(reg as u16, result);
             } else {
                 core.w = result;
             }
         }
         Instruction::ANDWF { reg, dest } => {
-            let result = core.w & core.read(reg);
+            let result = core.w & core.read(reg as u16);
 
             if dest {
-                core.write(reg, result);
+                core.write(reg as u16, result);
             } else {
                 core.w = result;
             }
@@ -296,7 +296,7 @@ pub fn exec_op(core: &mut P16Core, instruction: Instruction) {
             core.status.z = core.w == 0;
         }
         Instruction::CLRF { reg } => {
-            core.write(reg, 0);
+            core.write(reg as u16, 0);
             core.status.z = true;
         }
         Instruction::CLRW => {
@@ -304,104 +304,104 @@ pub fn exec_op(core: &mut P16Core, instruction: Instruction) {
             core.status.z = true;
         }
         Instruction::COMF { reg, dest } => {
-            let result = !core.read(reg);
+            let result = !core.read(reg as u16);
             core.status.z = result == 0;
             if dest {
-                core.write(reg, result);
+                core.write(reg as u16, result);
             } else {
                 core.w = result;
             }
         }
         Instruction::DECF { reg, dest } => {
-            let result = core.read(reg) - 1;
+            let result = core.read(reg as u16) - 1;
             core.status.z = result == 0;
             if dest {
-                core.write(reg, result);
+                core.write(reg as u16, result);
             } else {
                 core.w = result;
             }
         }
         Instruction::DECFSZ { reg, dest } => {
-            let result = core.read(reg) - 1;
+            let result = core.read(reg as u16) - 1;
             if result == 0 {
                 core.skip_next = true;
             }
             if dest {
-                core.write(reg, result);
+                core.write(reg as u16, result);
             } else {
                 core.w = result;
             }
         }
         Instruction::INCF { reg, dest } => {
-            let result = core.read(reg) + 1;
+            let result = core.read(reg as u16) + 1;
             core.status.z = result == 0;
             if dest {
-                core.write(reg, result);
+                core.write(reg as u16, result);
             } else {
                 core.w = result;
             }
         }
         Instruction::INCFSZ { reg, dest } => {
-            let result = core.read(reg) + 1;
+            let result = core.read(reg as u16) + 1;
             if result == 0 {
                 core.skip_next = true;
             }
             if dest {
-                core.write(reg, result);
+                core.write(reg as u16, result);
             } else {
                 core.w = result;
             }
         }
         Instruction::IORWF { reg, dest } => {
-            let result = core.w | core.read(reg);
+            let result = core.w | core.read(reg as u16);
             core.status.z = result == 0;
             if dest {
-                core.write(reg, result);
+                core.write(reg as u16, result);
             } else {
                 core.w = result;
             }
         }
         Instruction::MOVF { reg, dest } => {
-            let f = core.read(reg);
+            let f = core.read(reg as u16);
 
             if dest {
-                core.write(reg, f);
+                core.write(reg as u16, f);
             } else {
                 core.w = f;
             }
         }
         Instruction::MOVWF { reg } => {
-            core.write(reg, core.w);
+            core.write(reg as u16, core.w);
         }
         Instruction::NOP => {}
         Instruction::RLF { reg, dest } => {
-            let v = core.read(reg);
+            let v = core.read(reg as u16);
 
             let c = v >> 7;
             let result = (v << 1) | core.status.c as u8;
             core.status.c = c == 1;
 
             if dest {
-                core.write(reg, result);
+                core.write(reg as u16, result);
             } else {
                 core.w = v;
             }
         }
         Instruction::RRF { reg, dest } => {
-            let v = core.read(reg);
+            let v = core.read(reg as u16);
 
             let c = v & 1;
             let result = (v >> 1) | ((core.status.c as u8) << 7);
             core.status.c = c == 1;
 
             if dest {
-                core.write(reg, result);
+                core.write(reg as u16, result);
             } else {
                 core.w = result;
             }
         }
         Instruction::SUBWF { reg, dest } => {
-            let f = core.read(reg);
+            let f = core.read(reg as u16);
             let (result, c) = f.overflowing_sub(core.w);
 
             core.status.z = result == 0;
@@ -409,49 +409,49 @@ pub fn exec_op(core: &mut P16Core, instruction: Instruction) {
             core.status.dc = (f & 0x0F) >= (core.w & 0x0F);
 
             if dest {
-                core.write(reg, result);
+                core.write(reg as u16, result);
             } else {
                 core.w = result;
             }
         }
         Instruction::SWAPF { reg, dest } => {
-            let f = core.read(reg);
+            let f = core.read(reg as u16);
             let result = ((f & 0xF0) >> 4) | ((f & 0xF) << 4);
 
             if dest {
-                core.write(reg, result);
+                core.write(reg as u16, result);
             } else {
                 core.w = result;
             }
         }
         Instruction::XORWF { reg, dest } => {
-            let f = core.read(reg);
+            let f = core.read(reg as u16);
             let result = core.w ^ f;
 
             core.status.z = result == 0;
 
             if dest {
-                core.write(reg, result);
+                core.write(reg as u16, result);
             } else {
                 core.w = result;
             }
         }
         Instruction::BCF { reg, bit } => {
-            let result = core.read(reg) & !(1u8 << bit);
-            core.write(reg, result);
+            let result = core.read(reg as u16) & !(1u8 << bit);
+            core.write(reg as u16, result);
         }
         Instruction::BSF { reg, bit } => {
-            let result = core.read(reg) | (1u8 << bit);
-            core.write(reg, result);
+            let result = core.read(reg as u16) | (1u8 << bit);
+            core.write(reg as u16, result);
         }
         Instruction::BTFSC { reg, bit } => {
-            let bit = core.read(reg) & (1u8 << bit) == 1;
+            let bit = core.read(reg as u16) & (1u8 << bit) == 1;
             if !bit {
                 core.skip_next = true;
             }
         }
         Instruction::BTFSS { reg, bit } => {
-            let bit = core.read(reg) & (1u8 << bit) == 1;
+            let bit = core.read(reg as u16) & (1u8 << bit) == 1;
             if bit {
                 core.skip_next = true;
             }
