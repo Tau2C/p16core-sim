@@ -129,7 +129,7 @@ impl P16Core {
         }
     }
 
-    #[tracing::instrument]
+    #[cfg_attr(feature = "trace", tracing::instrument)]
     pub fn decode(word: u16) -> Instruction {
         match (word >> 8) as u8 {
             0b00_0000..=0b00_1111 => match (word >> 8) as u8 {
@@ -269,6 +269,8 @@ impl P16Core {
 
     pub fn get_next_op(&mut self) -> u16 {
         let mut int = false;
+        #[cfg(feature = "flame")]
+        flame::start("inc_tmr0");
         {
             self.tmr0_prescale_counter += 1;
             let prescale = 1 << (self.option.value() & 0b00000111);
@@ -282,7 +284,11 @@ impl P16Core {
                 }
             }
         }
+        #[cfg(feature = "flame")]
+        flame::end("inc_tmr0");
         
+        #[cfg(feature = "flame")]
+        flame::start("inc_tmr1");
         if self.t1con.tmr1on {
             self.tmr1_prescale_counter += 1;
             let v = self.t1con.value();
@@ -296,25 +302,42 @@ impl P16Core {
                 }
             }
         }
-        
+        #[cfg(feature = "flame")]
+        flame::end("inc_tmr1");
+
+        #[cfg(feature = "flame")]
+        flame::start("intterupt");
         if int {
             self.intterupt();
         }
-        
+        #[cfg(feature = "flame")]
+        flame::end("intterupt");
+
+        #[cfg(feature = "flame")]
+        flame::start("skip");
         let op = if self.skip_next {
             0
         } else {
             self.program[(self.pc % 4096) as usize]
         };
+        #[cfg(feature = "flame")]
+        flame::end("skip");
+
+        #[cfg(feature = "flame")]
+        flame::start("pc");
         (self.pc, _) = self.pc.overflowing_add(1);
         self.skip_next = false;
+        #[cfg(feature = "flame")]
+        flame::end("pc");
         op
     }
 
-    #[tracing::instrument(skip(self))]
+    #[cfg_attr(feature = "trace", tracing::instrument(skip(self)))]
     pub fn exec_op(&mut self, instruction: Instruction) {
         match instruction {
             Instruction::ADDWF { reg, dest } => {
+                #[cfg(feature = "flame")]
+                flame::start_guard("ADDWF");
                 let b = self.read(reg as u16);
                 let (result, c) = self.w.overflowing_add(b);
 
@@ -329,6 +352,8 @@ impl P16Core {
                 self.status.dc = ((self.w & 0x0F) + (b & 0x0F)) > 0x0F;
             }
             Instruction::ANDWF { reg, dest } => {
+                #[cfg(feature = "flame")]
+                flame::start_guard("ANDWF");
                 let result = self.w & self.read(reg as u16);
 
                 if dest {
@@ -340,14 +365,20 @@ impl P16Core {
                 self.status.z = self.w == 0;
             }
             Instruction::CLRF { reg } => {
+                #[cfg(feature = "flame")]
+                flame::start_guard("CLRF");
                 self.write(reg as u16, 0);
                 self.status.z = true;
             }
             Instruction::CLRW => {
+                #[cfg(feature = "flame")]
+                flame::start_guard("CLRW");
                 self.w = 0;
                 self.status.z = true;
             }
             Instruction::COMF { reg, dest } => {
+                #[cfg(feature = "flame")]
+                flame::start_guard("COMF");
                 let result = !self.read(reg as u16);
                 if dest {
                     self.write(reg as u16, result);
@@ -358,6 +389,8 @@ impl P16Core {
                 self.status.z = result == 0;
             }
             Instruction::DECF { reg, dest } => {
+                #[cfg(feature = "flame")]
+                flame::start_guard("DECF");
                 let result = self.read(reg as u16) - 1;
                 if dest {
                     self.write(reg as u16, result);
@@ -368,6 +401,8 @@ impl P16Core {
                 self.status.z = result == 0;
             }
             Instruction::DECFSZ { reg, dest } => {
+                #[cfg(feature = "flame")]
+                flame::start_guard("DECFSZ");
                 let result = self.read(reg as u16) - 1;
                 if result == 0 {
                     self.skip_next = true;
@@ -379,6 +414,8 @@ impl P16Core {
                 }
             }
             Instruction::INCF { reg, dest } => {
+                #[cfg(feature = "flame")]
+                flame::start_guard("INCF");
                 let result = self.read(reg as u16) + 1;
                 if dest {
                     self.write(reg as u16, result);
@@ -389,6 +426,8 @@ impl P16Core {
                 self.status.z = result == 0;
             }
             Instruction::INCFSZ { reg, dest } => {
+                #[cfg(feature = "flame")]
+                flame::start_guard("INCFSZ");
                 let result = self.read(reg as u16) + 1;
                 if result == 0 {
                     self.skip_next = true;
@@ -400,6 +439,8 @@ impl P16Core {
                 }
             }
             Instruction::IORWF { reg, dest } => {
+                #[cfg(feature = "flame")]
+                flame::start_guard("IORWF");
                 let result = self.w | self.read(reg as u16);
                 if dest {
                     self.write(reg as u16, result);
@@ -410,6 +451,8 @@ impl P16Core {
                 self.status.z = result == 0;
             }
             Instruction::MOVF { reg, dest } => {
+                #[cfg(feature = "flame")]
+                flame::start_guard("MOVF");
                 let f = self.read(reg as u16);
 
                 if dest {
@@ -419,10 +462,17 @@ impl P16Core {
                 }
             }
             Instruction::MOVWF { reg } => {
+                #[cfg(feature = "flame")]
+                flame::start_guard("MOVWF");
                 self.write(reg as u16, self.w);
             }
-            Instruction::NOP => {}
+            Instruction::NOP => {
+                #[cfg(feature = "flame")]
+                flame::start_guard("NOP");
+            }
             Instruction::RLF { reg, dest } => {
+                #[cfg(feature = "flame")]
+                flame::start_guard("RLF");
                 let v = self.read(reg as u16);
 
                 let c = v >> 7;
@@ -437,6 +487,8 @@ impl P16Core {
                 self.status.c = c == 1;
             }
             Instruction::RRF { reg, dest } => {
+                #[cfg(feature = "flame")]
+                flame::start_guard("RRF");
                 let v = self.read(reg as u16);
 
                 let c = v & 1;
@@ -451,6 +503,8 @@ impl P16Core {
                 self.status.c = c == 1;
             }
             Instruction::SUBWF { reg, dest } => {
+                #[cfg(feature = "flame")]
+                flame::start_guard("SUBWF");
                 let f = self.read(reg as u16);
                 let (result, c) = f.overflowing_sub(self.w);
 
@@ -465,6 +519,8 @@ impl P16Core {
                 self.status.dc = (f & 0x0F) >= (self.w & 0x0F);
             }
             Instruction::SWAPF { reg, dest } => {
+                #[cfg(feature = "flame")]
+                flame::start_guard("SWAPF");
                 let f = self.read(reg as u16);
                 let result = ((f & 0xF0) >> 4) | ((f & 0xF) << 4);
 
@@ -475,6 +531,8 @@ impl P16Core {
                 }
             }
             Instruction::XORWF { reg, dest } => {
+                #[cfg(feature = "flame")]
+                flame::start_guard("XORWF");
                 let f = self.read(reg as u16);
                 let result = self.w ^ f;
 
@@ -487,26 +545,36 @@ impl P16Core {
                 self.status.z = result == 0;
             }
             Instruction::BCF { reg, bit } => {
+                #[cfg(feature = "flame")]
+                flame::start_guard("BCF");
                 let result = self.read(reg as u16) & !(1u8 << bit);
                 self.write(reg as u16, result);
             }
             Instruction::BSF { reg, bit } => {
+                #[cfg(feature = "flame")]
+                flame::start_guard("BSF");
                 let result = self.read(reg as u16) | (1u8 << bit);
                 self.write(reg as u16, result);
             }
             Instruction::BTFSC { reg, bit } => {
+                #[cfg(feature = "flame")]
+                flame::start_guard("BTFSC");
                 let bit = self.read(reg as u16) & (1u8 << bit) == 1;
                 if !bit {
                     self.skip_next = true;
                 }
             }
             Instruction::BTFSS { reg, bit } => {
+                #[cfg(feature = "flame")]
+                flame::start_guard("BTFSS");
                 let bit = self.read(reg as u16) & (1u8 << bit) == 1;
                 if bit {
                     self.skip_next = true;
                 }
             }
             Instruction::ADDLW { lit } => {
+                #[cfg(feature = "flame")]
+                flame::start_guard("ADDLW");
                 let (result, c) = self.w.overflowing_add(lit);
 
                 self.w = result;
@@ -516,35 +584,53 @@ impl P16Core {
                 self.status.dc = ((self.w & 0x0F) + (lit & 0x0F)) > 0x0F;
             }
             Instruction::ANDLW { lit } => {
+                #[cfg(feature = "flame")]
+                flame::start_guard("ANDLW");
                 self.w &= lit;
                 self.status.z = self.w == 0;
             }
             Instruction::CALL { lit } => {
+                #[cfg(feature = "flame")]
+                flame::start_guard("CALL");
                 self.stack.push_front(self.pc);
                 self.pc = (self.pclath as u16 & 0x18 << 7) | lit & 0x3FF;
             }
             Instruction::GOTO { lit } => {
+                #[cfg(feature = "flame")]
+                flame::start_guard("GOTO");
                 self.pc = (self.pclath as u16 & 0x18 << 7) | lit & 0x3FF;
             }
             Instruction::IORLW { lit } => {
+                #[cfg(feature = "flame")]
+                flame::start_guard("IORLW");
                 self.w |= lit;
                 self.status.z = self.w == 0;
             }
             Instruction::MOVLW { lit } => {
+                #[cfg(feature = "flame")]
+                flame::start_guard("MOVLW");
                 self.w = lit;
             }
             Instruction::RETFIE => {
+                #[cfg(feature = "flame")]
+                flame::start_guard("RETFIE");
                 self.pc = self.stack.pop_front().unwrap();
                 self.intcon.gie = true;
             }
             Instruction::RETLW { lit } => {
+                #[cfg(feature = "flame")]
+                flame::start_guard("RETLW");
                 self.w = lit;
                 self.pc = self.stack.pop_front().unwrap();
             }
             Instruction::RETURN => {
+                #[cfg(feature = "flame")]
+                flame::start_guard("RETURN");
                 self.pc = self.stack.pop_front().unwrap();
             }
             Instruction::SUBLW { lit } => {
+                #[cfg(feature = "flame")]
+                flame::start_guard("SUBLW");
                 let (result, c) = lit.overflowing_sub(self.w);
 
                 self.w = result;
@@ -554,14 +640,18 @@ impl P16Core {
                 self.status.dc = (lit & 0x0F) >= (self.w & 0x0F);
             }
             Instruction::XORLW { lit } => {
+                #[cfg(feature = "flame")]
+                flame::start_guard("XORLW");
                 self.w ^= lit;
                 self.status.z = self.w == 0;
             }
         }
     }
 
-    #[tracing::instrument(skip(self))]
+    #[cfg_attr(feature = "trace", tracing::instrument(skip(self)))]
     pub fn write(&mut self, address: u16, value: u8) {
+        #[cfg(feature = "flame")]
+        flame::start("write");
         let address =
             (((self.status.rp1 as u16) << 1 | (self.status.rp0 as u16)) << 8) | (address as u16);
         match address {
@@ -638,18 +728,28 @@ impl P16Core {
 
             0x200..=u16::MAX => unreachable!("Write outside of the RAM"),
         }
+        #[cfg(feature = "flame")]
+        flame::end("write");
     }
 
-    #[tracing::instrument(skip(self))]
+    #[cfg_attr(feature = "trace", tracing::instrument(skip(self)))]
     pub fn read(&self, address: u16) -> u8 {
+        #[cfg(feature = "flame")]
+        flame::start("read");
+        #[cfg(feature = "flame")]
+        flame::start("address");
         let address = if address > 0xff {
             address
         } else {
             (((self.status.rp1 as u16) << 1 | (self.status.rp0 as u16)) << 8) | (address as u16)
         };
+        #[cfg(feature = "flame")]
+        flame::end("address");
 
         let value = match address {
             0x000 | 0x080 | 0x100 | 0x180 => {
+                #[cfg(feature = "flame")]
+                flame::start_guard("INDF");
                 if self.fsr == 0 {
                     0
                 } else {
@@ -711,6 +811,8 @@ impl P16Core {
 
             0x200..=u16::MAX => unreachable!("Read outside of the RAM"),
         };
+        #[cfg(feature = "flame")]
+        flame::end("read");
         value
     }
 

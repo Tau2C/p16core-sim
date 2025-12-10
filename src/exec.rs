@@ -129,7 +129,7 @@ pub enum Instruction {
     XORLW { lit: K },
 }
 
-#[tracing::instrument]
+#[cfg_attr(feature = "trace", tracing::instrument)]
 pub fn decode(word: u16) -> Instruction {
     match (word >> 8) as u8 {
         0b00_0000..=0b00_1111 => match (word >> 8) as u8 {
@@ -267,7 +267,7 @@ pub fn decode(word: u16) -> Instruction {
     }
 }
 
-#[tracing::instrument(skip(core))]
+#[cfg_attr(feature = "trace", tracing::instrument(skip(core)))]
 pub fn exec_op(core: &mut P16Core, instruction: Instruction) {
     match instruction {
         Instruction::ADDWF { reg, dest } => {
